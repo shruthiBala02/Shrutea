@@ -73,109 +73,112 @@ export function PostInteractions({
   };
 
   return (
-    <div style={{ marginTop: "3rem", borderTop: `1px solid ${themeColor ? `${themeColor}66` : 'rgba(255,255,255,0.1)'}`, paddingTop: "2rem" }}>
+    <div className="interactions-container" style={{ borderTopColor: themeColor ? `${themeColor}44` : 'rgba(255,255,255,0.1)' }}>
       
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.5rem" }}>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "-0.5rem" }}>Enter your email to like or comment</p>
-            
-            {errorStatus && (
-              <div style={{ padding: "0.8rem", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "var(--radius-sm)", color: "#f87171", fontSize: "0.9rem" }}>
-                {errorStatus}
-              </div>
+      {/* Identity Recognition */}
+      <div className="identifier-section">
+        <p className="input-label" style={{ marginBottom: "0.5rem" }}>
+          Tell us who you are (used for likes and comments)
+        </p>
+        
+        {errorStatus && (
+          <div style={{ padding: "0.8rem", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "var(--radius-sm)", color: "#f87171", fontSize: "0.9rem", marginBottom: "1rem" }}>
+            {errorStatus}
+          </div>
+        )}
+        
+        <input 
+          type="email" 
+          placeholder="yourname@gmail.com" 
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+          className="modern-input"
+        />
+      </div>
+
+      {/* Main Interaction Bar */}
+      <div className="interaction-bar">
+        <button 
+          onClick={handleLike}
+          disabled={!email || hasLiked}
+          className={`interaction-btn ${hasLiked ? 'active' : ''}`}
+          style={{ 
+            color: hasLiked ? (themeColor || "var(--accent-color)") : "#fff",
+            borderColor: hasLiked ? (themeColor ? `${themeColor}66` : "var(--accent-color)") : "rgba(255,255,255,0.1)"
+          }}
+        >
+          <Heart size={20} fill={hasLiked ? "currentColor" : "none"} /> 
+          <span>{likes} {likes === 1 ? 'Like' : 'Likes'}</span>
+        </button>
+        
+        <button 
+          onClick={() => setShowComments(!showComments)}
+          className={`interaction-btn ${showComments ? 'active' : ''}`}
+        >
+          <MessageCircle size={20} /> 
+          <span>{comments.length} Comments</span>
+        </button>
+      </div>
+
+      {/* Discussion Panel */}
+      {showComments && (
+        <div className="comments-panel">
+          <h3 className="panel-title">
+            <MessageCircle size={22} className="gradient-text" />
+            Discussion
+          </h3>
+          
+          <form onSubmit={submitComment} className="comment-form">
+            <div className="textarea-wrapper">
+              <textarea 
+                placeholder="Write a comment..." 
+                value={newComment}
+                onChange={e => setNewComment(e.target.value)}
+                required
+                className="modern-textarea"
+              />
+              <button 
+                type="submit" 
+                disabled={commenting || !newComment || !email}
+                className="submit-comment-btn"
+                title="Post Comment"
+              >
+                <Send size={18} />
+              </button>
+            </div>
+            {!email && (
+              <p style={{ fontSize: "0.75rem", color: "rgba(239, 68, 68, 0.7)", textAlign: "center" }}>
+                Enter your email above to enable commenting.
+              </p>
             )}
-            
-            <input 
-              type="email" 
-              placeholder="Your email address..." 
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "0.8rem", borderRadius: "var(--radius-sm)", fontSize: "0.95rem" }}
-            />
-          </div>
+          </form>
 
-          {/* Interaction Bar */}
-          <div style={{ display: "flex", gap: "1rem", marginBottom: showComments ? "2rem" : "0" }}>
-            <button 
-              onClick={handleLike}
-              disabled={!email || hasLiked}
-              className="btn-secondary" 
-              style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "0.5rem", 
-                color: hasLiked ? (themeColor || "var(--accent-color)") : "#fff", 
-                background: hasLiked ? `${themeColor || "var(--accent-color)"}26` : "rgba(255,255,255,0.05)",
-                borderColor: hasLiked ? (themeColor || "var(--accent-color)") : "rgba(255,255,255,0.2)",
-                padding: "0.7rem 1.2rem",
-                fontSize: "1rem",
-                opacity: email ? 1 : 0.6
-              }}
-            >
-              <Heart size={20} fill={hasLiked ? "currentColor" : "none"} /> 
-              <span style={{ fontWeight: 600 }}>{likes}</span>
-            </button>
-            <button 
-              onClick={() => setShowComments(!showComments)}
-              className="btn-secondary" 
-              style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "0.5rem", 
-                background: showComments ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.05)",
-                color: "#fff",
-                borderColor: "rgba(255,255,255,0.2)",
-                padding: "0.7rem 1.2rem",
-                fontSize: "1rem"
-              }}
-            >
-              <MessageCircle size={20} /> 
-              <span style={{ fontWeight: 600 }}>{comments.length} Comments</span>
-            </button>
-          </div>
-
-          {/* Discussion */}
-          {showComments && (
-            <div style={{ background: "rgba(0, 0, 0, 0.2)", padding: "2rem", borderRadius: "var(--radius-lg)", border: "1px solid rgba(255,255,255,0.1)", marginTop: "1rem" }}>
-              <h3 style={{ marginBottom: "1rem", fontSize: "1.2rem" }}>Discussion</h3>
-              
-              <form onSubmit={submitComment} style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2rem" }}>
-                <div style={{ position: "relative" }}>
-                  <textarea 
-                    placeholder="What are your thoughts?" 
-                    value={newComment}
-                    onChange={e => setNewComment(e.target.value)}
-                    required
-                    rows={3}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", width: "100%", padding: "0.8rem", paddingRight: "3rem", resize: "vertical", color: "#fff", borderRadius: "var(--radius-sm)" }}
-                  />
-                  <button 
-                    type="submit" 
-                    disabled={commenting || !newComment || !email}
-                    className="btn-primary"
-                    style={{ position: "absolute", bottom: "1rem", right: "1rem", padding: "0.4rem" }}
-                  >
-                    <Send size={16} />
-                  </button>
-                </div>
-              </form>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div className="comment-list">
             {comments.length === 0 ? (
-              <p style={{ color: "var(--text-muted)", textAlign: "center", padding: "1rem 0" }}>Be the first to share your thoughts!</p>
+              <div style={{ textAlign: "center", padding: "3rem 0", color: "var(--text-muted)" }}>
+                <p>No comments yet. Be the first to start the conversation!</p>
+              </div>
             ) : (
-              comments.map((c: any) => (
-                <div key={c.id} style={{ padding: "1rem", borderBottom: "1px solid var(--border-color)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                    <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--accent-color)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "0.9rem" }}>
-                      {c.author_name.charAt(0).toUpperCase()}
+              [...comments].reverse().map((c: any) => (
+                <div key={c.id} className="comment-bubble">
+                  <div className="comment-header">
+                    <div className="author-avatar" style={{ background: themeColor || "var(--accent-gradient)" }}>
+                      {c.author_name?.charAt(0) || '?'}
                     </div>
-                    <div>
-                      <span style={{ fontWeight: 600, display: "block", fontSize: "0.95rem" }}>{c.author_name}</span>
-                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{new Date(c.created_at).toLocaleDateString()}</span>
+                    <div className="author-info">
+                      <span className="author-name">{c.author_name}</span>
+                      {c.author_email && (
+                        <span className="author-email-tag">{c.author_email}</span>
+                      )}
                     </div>
                   </div>
-                  <p style={{ color: "var(--text-main)", fontSize: "0.95rem", lineHeight: "1.5" }}>{c.content}</p>
+                  <div className="comment-content">
+                    {c.content}
+                  </div>
+                  <div className="comment-footer">
+                    {new Date(c.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </div>
                 </div>
               ))
             )}
