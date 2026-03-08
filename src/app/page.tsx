@@ -24,7 +24,15 @@ export default async function Home() {
               </div>
             ) : (
               blogs.map((blog: any) => (
-                <div key={blog.id} className="card blog-card-row">
+                <div 
+                  key={blog.id} 
+                  className="card blog-card-row"
+                  style={{ 
+                    background: blog.theme_color ? `${blog.theme_color}26` : 'var(--bg-card)',
+                    borderColor: blog.theme_color ? `${blog.theme_color}80` : 'var(--border-color)',
+                    boxShadow: blog.theme_color ? `0 0 30px ${blog.theme_color}1a` : 'none'
+                  }}
+                >
                   {/* Left: Constant Rectangle Image */}
                   {blog.image_url ? (
                     <div className="blog-card-thumbnail" style={{ backgroundImage: `url('${blog.image_url}')` }}></div>
