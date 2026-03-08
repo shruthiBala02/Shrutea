@@ -22,12 +22,18 @@ export function PostInteractions({
   const [newComment, setNewComment] = useState('');
   const [email, setEmail] = useState('');
   const [commenting, setCommenting] = useState(false);
+  const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   const handleLike = async () => {
     if (hasLiked) return;
     setLikes(l => l + 1);
     setHasLiked(true);
-    await likePost(blogId);
+    const res = await likePost(blogId);
+    if (res?.error) {
+      setLikes(l => l - 1);
+      setHasLiked(false);
+      setErrorStatus(res.error);
+    }
   };
 
   const submitComment = async (e: React.FormEvent) => {
@@ -35,8 +41,8 @@ export function PostInteractions({
     if (!newComment || !email) return;
     
     setCommenting(true);
+    setErrorStatus(null);
     
-    // Fallback UI update
     const optimisticComment = {
       id: Math.random().toString(),
       author_name: email.split('@')[0],
@@ -44,11 +50,20 @@ export function PostInteractions({
       created_at: new Date().toISOString()
     };
     
+    // Save previous state for rollback
+    const previousComments = [...comments];
     setComments([...comments, optimisticComment]);
-    setNewComment('');
-    setCommenting(false);
     
-    await addComment(blogId, email, newComment);
+    const res = await addComment(blogId, email, newComment);
+    
+    if (res?.error) {
+      setComments(previousComments);
+      setErrorStatus(res.error);
+      setCommenting(false);
+    } else {
+      setNewComment('');
+      setCommenting(false);
+    }
   };
 
   return (
@@ -99,6 +114,12 @@ export function PostInteractions({
           
           <form onSubmit={submitComment} style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2rem" }}>
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "-0.5rem" }}>Login with email or Google to comment</p>
+            
+            {errorStatus && (
+              <div style={{ padding: "0.8rem", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "var(--radius-sm)", color: "#f87171", fontSize: "0.9rem" }}>
+                {errorStatus}
+              </div>
+            )}
             <input 
               type="email" 
               placeholder="Your email address..." 
