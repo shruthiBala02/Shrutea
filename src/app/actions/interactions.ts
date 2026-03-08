@@ -4,12 +4,33 @@ import { createClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
 import { checkRateLimit } from '@/lib/rate-limit'
 
-export async function likePost(blogId: string) {
+export async function likePost(blogId: string, email: string) {
+  if (!email || !email.includes('@')) return { error: 'Valid email required to like.' }
+  
   const rateLimit = await checkRateLimit('like', 10)
   if (!rateLimit.allowed) return { error: rateLimit.error }
 
   const supabase = await createClient()
   
+  // Check if already liked
+  const { data: existingLike } = await supabase
+    .from('post_likes')
+    .select('id')
+    .eq('blog_id', blogId)
+    .eq('email', email)
+    .single()
+
+  if (existingLike) {
+    return { error: 'You have already liked this post!' }
+  }
+
+  // Insert like and increment count
+  const { error: likeError } = await supabase
+    .from('post_likes')
+    .insert([{ blog_id: blogId, email }])
+
+  if (likeError) return { error: 'Failed to record like.' }
+
   const { data: currentBlog } = await supabase
     .from('blogs')
     .select('likes_count')
@@ -28,8 +49,23 @@ export async function likePost(blogId: string) {
 }
 
 export async function addComment(blogId: string, email: string, content: string) {
-  const rateLimit = await checkRateLimit('comment', 5)
+  if (!email || !email.includes('@')) return { error: 'Valid email required to comment.' }
+  
+  const rateLimit = await checkRateLimit('comment', 10)
   if (!rateLimit.allowed) return { error: rateLimit.error }
+
+  const supabase = await createClient()
+
+  // Check comment count for this email on this post
+  const { count } = await supabase
+    .from('comments')
+    .select('*', { count: 'exact', head: true })
+    .eq('blog_id', blogId)
+    .eq('author_email', email)
+
+  if (count && count >= 5) {
+    return { error: 'Maximum of 5 comments per post reached for this email.' }
+  }
 
   // Simple HTML Sanitization
   const sanitizedContent = content.replace(/<[^>]*>?/gm, '')
@@ -37,13 +73,12 @@ export async function addComment(blogId: string, email: string, content: string)
     return { error: 'Comment cannot be empty.' }
   }
 
-  const supabase = await createClient()
   const authorName = email.split('@')[0]
 
   const { error } = await supabase
     .from('comments')
     .insert([
-      { blog_id: blogId, author_name: authorName, content: sanitizedContent }
+      { blog_id: blogId, author_name: authorName, author_email: email, content: sanitizedContent }
     ])
 
   if (error) {

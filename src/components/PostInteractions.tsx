@@ -25,10 +25,16 @@ export function PostInteractions({
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   const handleLike = async () => {
-    if (hasLiked) return;
+    if (hasLiked || !email || !email.includes('@')) {
+      if (!email) setErrorStatus("Please enter your email to like!");
+      return;
+    }
+    
     setLikes(l => l + 1);
     setHasLiked(true);
-    const res = await likePost(blogId);
+    setErrorStatus(null);
+    
+    const res = await likePost(blogId, email);
     if (res?.error) {
       setLikes(l => l - 1);
       setHasLiked(false);
@@ -69,84 +75,90 @@ export function PostInteractions({
   return (
     <div style={{ marginTop: "3rem", borderTop: `1px solid ${themeColor ? `${themeColor}66` : 'rgba(255,255,255,0.1)'}`, paddingTop: "2rem" }}>
       
-      {/* Interaction Bar */}
-      <div style={{ display: "flex", gap: "1rem", marginBottom: showComments ? "2rem" : "0" }}>
-        <button 
-          onClick={handleLike}
-          className="btn-secondary" 
-          style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: "0.5rem", 
-            color: hasLiked ? (themeColor || "var(--accent-color)") : "#fff", 
-            background: hasLiked ? `${themeColor || "var(--accent-color)"}26` : "rgba(255,255,255,0.05)",
-            borderColor: hasLiked ? (themeColor || "var(--accent-color)") : "rgba(255,255,255,0.2)",
-            padding: "0.7rem 1.2rem",
-            fontSize: "1rem"
-          }}
-        >
-          <Heart size={20} fill={hasLiked ? "currentColor" : "none"} /> 
-          <span style={{ fontWeight: 600 }}>{likes}</span>
-        </button>
-        <button 
-          onClick={() => setShowComments(!showComments)}
-          className="btn-secondary" 
-          style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: "0.5rem", 
-            background: showComments ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.05)",
-            color: "#fff",
-            borderColor: "rgba(255,255,255,0.2)",
-            padding: "0.7rem 1.2rem",
-            fontSize: "1rem"
-          }}
-        >
-          <MessageCircle size={20} /> 
-          <span style={{ fontWeight: 600 }}>{comments.length} Comments</span>
-        </button>
-      </div>
-
-      {/* Comments Section */}
-      {showComments && (
-        <div style={{ background: "rgba(0, 0, 0, 0.2)", padding: "2rem", borderRadius: "var(--radius-lg)", border: "1px solid rgba(255,255,255,0.1)", marginTop: "1rem" }}>
-          <h3 style={{ marginBottom: "1rem", fontSize: "1.2rem" }}>Discussion</h3>
-          
-          <form onSubmit={submitComment} style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2rem" }}>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "-0.5rem" }}>Login with email or Google to comment</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.5rem" }}>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "-0.5rem" }}>Enter your email to like or comment</p>
             
             {errorStatus && (
               <div style={{ padding: "0.8rem", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "var(--radius-sm)", color: "#f87171", fontSize: "0.9rem" }}>
                 {errorStatus}
               </div>
             )}
+            
             <input 
               type="email" 
               placeholder="Your email address..." 
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "0.8rem", borderRadius: "var(--radius-sm)" }}
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "0.8rem", borderRadius: "var(--radius-sm)", fontSize: "0.95rem" }}
             />
-            <div style={{ position: "relative" }}>
-              <textarea 
-                placeholder="What are your thoughts?" 
-                value={newComment}
-                onChange={e => setNewComment(e.target.value)}
-                required
-                rows={3}
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", width: "100%", padding: "0.8rem", paddingRight: "3rem", resize: "vertical", color: "#fff", borderRadius: "var(--radius-sm)" }}
-              />
-              <button 
-                type="submit" 
-                disabled={commenting || !newComment || !email}
-                className="btn-primary"
-                style={{ position: "absolute", bottom: "1rem", right: "1rem", padding: "0.4rem" }}
-              >
-                <Send size={16} />
-              </button>
-            </div>
-          </form>
+          </div>
+
+          {/* Interaction Bar */}
+          <div style={{ display: "flex", gap: "1rem", marginBottom: showComments ? "2rem" : "0" }}>
+            <button 
+              onClick={handleLike}
+              disabled={!email || hasLiked}
+              className="btn-secondary" 
+              style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "0.5rem", 
+                color: hasLiked ? (themeColor || "var(--accent-color)") : "#fff", 
+                background: hasLiked ? `${themeColor || "var(--accent-color)"}26` : "rgba(255,255,255,0.05)",
+                borderColor: hasLiked ? (themeColor || "var(--accent-color)") : "rgba(255,255,255,0.2)",
+                padding: "0.7rem 1.2rem",
+                fontSize: "1rem",
+                opacity: email ? 1 : 0.6
+              }}
+            >
+              <Heart size={20} fill={hasLiked ? "currentColor" : "none"} /> 
+              <span style={{ fontWeight: 600 }}>{likes}</span>
+            </button>
+            <button 
+              onClick={() => setShowComments(!showComments)}
+              className="btn-secondary" 
+              style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "0.5rem", 
+                background: showComments ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.05)",
+                color: "#fff",
+                borderColor: "rgba(255,255,255,0.2)",
+                padding: "0.7rem 1.2rem",
+                fontSize: "1rem"
+              }}
+            >
+              <MessageCircle size={20} /> 
+              <span style={{ fontWeight: 600 }}>{comments.length} Comments</span>
+            </button>
+          </div>
+
+          {/* Discussion */}
+          {showComments && (
+            <div style={{ background: "rgba(0, 0, 0, 0.2)", padding: "2rem", borderRadius: "var(--radius-lg)", border: "1px solid rgba(255,255,255,0.1)", marginTop: "1rem" }}>
+              <h3 style={{ marginBottom: "1rem", fontSize: "1.2rem" }}>Discussion</h3>
+              
+              <form onSubmit={submitComment} style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2rem" }}>
+                <div style={{ position: "relative" }}>
+                  <textarea 
+                    placeholder="What are your thoughts?" 
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    required
+                    rows={3}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", width: "100%", padding: "0.8rem", paddingRight: "3rem", resize: "vertical", color: "#fff", borderRadius: "var(--radius-sm)" }}
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={commenting || !newComment || !email}
+                    className="btn-primary"
+                    style={{ position: "absolute", bottom: "1rem", right: "1rem", padding: "0.4rem" }}
+                  >
+                    <Send size={16} />
+                  </button>
+                </div>
+              </form>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {comments.length === 0 ? (
