@@ -450,3 +450,13 @@ button { cursor: pointer; font-family: inherit; border: none; transition: all va
 .stats-btn span {
   font-size: 0.8rem;
 }
+
+/* Global Form Visibility */
+input, textarea, select {
+  color: #ffffff !important;
+  font-family: inherit;
+}
+
+::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}

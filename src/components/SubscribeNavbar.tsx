@@ -53,7 +53,7 @@ export function SubscribeNavbar() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoFocus
-          style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', borderRadius: '20px', border: '1px solid var(--border-color)', background: 'var(--bg-hover)', color: 'var(--text-main)', width: '200px' }}
+          style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.05)', color: '#fff', width: '200px' }}
         />
         <button type="submit" disabled={status === 'loading'} className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', borderRadius: '20px' }}>
           {status === 'loading' ? '...' : 'Subscribe'}

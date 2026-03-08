@@ -105,7 +105,7 @@ export function PostInteractions({
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              style={{ background: "var(--bg-color)", border: "1px solid var(--border-color)" }}
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "0.8rem", borderRadius: "var(--radius-sm)" }}
             />
             <div style={{ position: "relative" }}>
               <textarea 
@@ -114,7 +114,7 @@ export function PostInteractions({
                 onChange={e => setNewComment(e.target.value)}
                 required
                 rows={3}
-                style={{ background: "var(--bg-color)", border: "1px solid var(--border-color)", width: "100%", paddingRight: "3rem", resize: "vertical" }}
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", width: "100%", padding: "0.8rem", paddingRight: "3rem", resize: "vertical", color: "#fff", borderRadius: "var(--radius-sm)" }}
               />
               <button 
                 type="submit" 
