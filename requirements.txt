@@ -1,0 +1,19 @@
+# Next.js App Router project does not typically use requirements.txt (which is for Python).
+# Instead, Next.js uses package.json. 
+# To install the environment for this project on a new machine, run:
+# npm install
+
+# The core dependencies used in this project are:
+next>=14.0.0
+react>=18.2.0
+react-dom>=18.2.0
+@supabase/supabase-js
+@supabase/ssr
+lucide-react
+@tiptap/react
+@tiptap/starter-kit
+@tiptap/extension-link
+@tiptap/extension-underline
+@tiptap/extension-text-style
+@tiptap/extension-color
+date-fns
