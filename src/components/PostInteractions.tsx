@@ -4,7 +4,17 @@ import { useState } from 'react';
 import { Heart, MessageCircle, Send } from 'lucide-react';
 import { addComment, likePost } from '@/app/actions/interactions';
 
-export function PostInteractions({ blogId, initialLikes, initialComments }: { blogId: string, initialLikes: number, initialComments: any[] }) {
+export function PostInteractions({ 
+  blogId, 
+  initialLikes, 
+  initialComments, 
+  themeColor 
+}: { 
+  blogId: string, 
+  initialLikes: number, 
+  initialComments: any[],
+  themeColor?: string 
+}) {
   const [likes, setLikes] = useState(initialLikes);
   const [hasLiked, setHasLiked] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -42,31 +52,49 @@ export function PostInteractions({ blogId, initialLikes, initialComments }: { bl
   };
 
   return (
-    <div style={{ marginTop: "var(--space-2xl)", borderTop: "1px solid var(--border-subtle)", paddingTop: "var(--space-xl)" }}>
+    <div style={{ marginTop: "3rem", borderTop: `1px solid ${themeColor ? `${themeColor}66` : 'rgba(255,255,255,0.1)'}`, paddingTop: "2rem" }}>
       
       {/* Interaction Bar */}
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "var(--space-xl)" }}>
+      <div style={{ display: "flex", gap: "1rem", marginBottom: showComments ? "2rem" : "0" }}>
         <button 
           onClick={handleLike}
           className="btn-secondary" 
-          style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: hasLiked ? "var(--accent-color)" : "inherit", borderColor: hasLiked ? "var(--accent-color)" : "var(--border-color)" }}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "0.5rem", 
+            color: hasLiked ? (themeColor || "var(--accent-color)") : "#fff", 
+            background: hasLiked ? `${themeColor || "var(--accent-color)"}26` : "rgba(255,255,255,0.05)",
+            borderColor: hasLiked ? (themeColor || "var(--accent-color)") : "rgba(255,255,255,0.2)",
+            padding: "0.7rem 1.2rem",
+            fontSize: "1rem"
+          }}
         >
-          <Heart size={18} fill={hasLiked ? "currentColor" : "none"} /> 
-          <span>{likes}</span>
+          <Heart size={20} fill={hasLiked ? "currentColor" : "none"} /> 
+          <span style={{ fontWeight: 600 }}>{likes}</span>
         </button>
         <button 
           onClick={() => setShowComments(!showComments)}
           className="btn-secondary" 
-          style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: showComments ? "var(--bg-hover)" : "transparent" }}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "0.5rem", 
+            background: showComments ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.05)",
+            color: "#fff",
+            borderColor: "rgba(255,255,255,0.2)",
+            padding: "0.7rem 1.2rem",
+            fontSize: "1rem"
+          }}
         >
-          <MessageCircle size={18} /> 
-          <span>{comments.length} Comments</span>
+          <MessageCircle size={20} /> 
+          <span style={{ fontWeight: 600 }}>{comments.length} Comments</span>
         </button>
       </div>
 
       {/* Comments Section */}
       {showComments && (
-        <div style={{ background: "var(--bg-hover)", padding: "var(--space-lg)", borderRadius: "var(--radius-lg)" }}>
+        <div style={{ background: "rgba(0, 0, 0, 0.2)", padding: "2rem", borderRadius: "var(--radius-lg)", border: "1px solid rgba(255,255,255,0.1)", marginTop: "1rem" }}>
           <h3 style={{ marginBottom: "1rem", fontSize: "1.2rem" }}>Discussion</h3>
           
           <form onSubmit={submitComment} style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2rem" }}>

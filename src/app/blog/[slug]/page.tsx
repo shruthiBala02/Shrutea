@@ -57,15 +57,16 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             style={{ fontSize: "1.2rem", color: "rgba(255,255,255,0.95)", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "var(--space-md)", wordWrap: "break-word" }}
             dangerouslySetInnerHTML={{ __html: blog.content }} 
           />
-        </div>
 
-        {/* Interactions (Likes, Comments) */}
-        <div style={{ marginTop: "var(--space-xl)", marginBottom: "var(--space-2xl)" }}>
-          <PostInteractions 
-            blogId={blog.id} 
-            initialLikes={blog.likes_count || 0} 
-            initialComments={comments || []} 
-          />
+          {/* Interactions (Likes, Comments) - Moved INSIDE the card */}
+          <div style={{ marginTop: "4rem" }}>
+            <PostInteractions 
+              blogId={blog.id} 
+              initialLikes={blog.likes_count || 0} 
+              initialComments={comments || []} 
+              themeColor={blog.theme_color}
+            />
+          </div>
         </div>
       </div>
     </article>
