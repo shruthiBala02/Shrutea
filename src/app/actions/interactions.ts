@@ -4,33 +4,12 @@ import { createClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
 import { checkRateLimit } from '@/lib/rate-limit'
 
-export async function likePost(blogId: string, email: string) {
-  if (!email || !email.includes('@')) return { error: 'Valid email required to like.' }
-  
-  const rateLimit = await checkRateLimit('like', 10)
+export async function likePost(blogId: string) {
+  const rateLimit = await checkRateLimit('like', 100)
   if (!rateLimit.allowed) return { error: rateLimit.error }
 
   const supabase = await createClient()
   
-  // Check if already liked
-  const { data: existingLike } = await supabase
-    .from('post_likes')
-    .select('id')
-    .eq('blog_id', blogId)
-    .eq('email', email)
-    .single()
-
-  if (existingLike) {
-    return { error: 'You have already liked this post!' }
-  }
-
-  // Insert like and increment count
-  const { error: likeError } = await supabase
-    .from('post_likes')
-    .insert([{ blog_id: blogId, email }])
-
-  if (likeError) return { error: 'Failed to record like.' }
-
   const { data: currentBlog } = await supabase
     .from('blogs')
     .select('likes_count')
@@ -49,7 +28,9 @@ export async function likePost(blogId: string, email: string) {
 }
 
 export async function addComment(blogId: string, email: string, content: string) {
-  if (!email || !email.includes('@')) return { error: 'Valid email required to comment.' }
+  if (!email || !email.includes('@')) {
+    return { error: 'A valid email address is required to comment.' }
+  }
   
   const rateLimit = await checkRateLimit('comment', 10)
   if (!rateLimit.allowed) return { error: rateLimit.error }
@@ -91,7 +72,7 @@ export async function addComment(blogId: string, email: string, content: string)
 }
 
 export async function incrementView(blogId: string) {
-  const rateLimit = await checkRateLimit('view', 20)
+  const rateLimit = await checkRateLimit('view', 1000)
   if (!rateLimit.allowed) return
 
   const supabase = await createClient()

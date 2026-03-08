@@ -25,16 +25,13 @@ export function PostInteractions({
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   const handleLike = async () => {
-    if (hasLiked || !email || !email.includes('@')) {
-      if (!email) setErrorStatus("Please enter your email to like!");
-      return;
-    }
+    if (hasLiked) return;
     
     setLikes(l => l + 1);
     setHasLiked(true);
     setErrorStatus(null);
     
-    const res = await likePost(blogId, email);
+    const res = await likePost(blogId);
     if (res?.error) {
       setLikes(l => l - 1);
       setHasLiked(false);
@@ -52,6 +49,7 @@ export function PostInteractions({
     const optimisticComment = {
       id: Math.random().toString(),
       author_name: email.split('@')[0],
+      author_email: email,
       content: newComment,
       created_at: new Date().toISOString()
     };
@@ -82,39 +80,25 @@ export function PostInteractions({
         </div>
       )}
 
-      {/* Main Interaction Bar */}
+      {/* Interaction Bar */}
       <div className="interaction-bar">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
-          <button 
-            onClick={handleLike}
-            disabled={hasLiked}
-            className={`interaction-btn ${hasLiked ? 'active' : ''}`}
-            style={{ 
-              color: hasLiked ? (themeColor || "var(--accent-color)") : "#fff",
-              borderColor: hasLiked ? (themeColor ? `${themeColor}66` : "var(--accent-color)") : "rgba(255,255,255,0.1)",
-              width: 'fit-content'
-            }}
-          >
-            <Heart size={20} fill={hasLiked ? "currentColor" : "none"} /> 
-            <span>{likes} {likes === 1 ? 'Like' : 'Likes'}</span>
-          </button>
-          
-          {!email && !hasLiked && (
-            <input 
-              type="email" 
-              placeholder="Email to like..." 
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="modern-input"
-              style={{ padding: '0.5rem 0.8rem', fontSize: '0.85rem', maxWidth: '240px' }}
-            />
-          )}
-        </div>
+        <button 
+          onClick={handleLike}
+          disabled={hasLiked}
+          className={`interaction-btn ${hasLiked ? 'active' : ''}`}
+          style={{ 
+            color: hasLiked ? (themeColor || "var(--accent-color)") : "#fff",
+            borderColor: hasLiked ? (themeColor ? `${themeColor}66` : "var(--accent-color)") : "rgba(255,255,255,0.1)",
+            width: 'fit-content'
+          }}
+        >
+          <Heart size={20} fill={hasLiked ? "currentColor" : "none"} /> 
+          <span>{likes} {likes === 1 ? 'Like' : 'Likes'}</span>
+        </button>
         
         <button 
           onClick={() => setShowComments(!showComments)}
           className={`interaction-btn ${showComments ? 'active' : ''}`}
-          style={{ height: 'fit-content' }}
         >
           <MessageCircle size={20} /> 
           <span>{comments.length}</span>
@@ -130,19 +114,17 @@ export function PostInteractions({
           </h3>
           
           <form onSubmit={submitComment} className="comment-form">
-            {!email && (
-              <div style={{ marginBottom: '0.5rem' }}>
-                <p className="input-label" style={{ marginBottom: '0.5rem' }}>Email to comment:</p>
-                <input 
-                  type="email" 
-                  placeholder="yourname@gmail.com" 
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="modern-input"
-                  required
-                />
-              </div>
-            )}
+            <div style={{ marginBottom: '0.5rem' }}>
+              <p className="input-label" style={{ marginBottom: '0.5rem' }}>Email to comment:</p>
+              <input 
+                type="email" 
+                placeholder="yourname@gmail.com" 
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="modern-input"
+                required
+              />
+            </div>
             
             <div className="textarea-wrapper">
               <textarea 
