@@ -1,11 +1,15 @@
 'use server'
 
 import { createClient } from '@/lib/supabase-server'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function subscribeToNewsletter(email: string) {
   if (!email || !email.includes('@')) {
     return { error: 'Please enter a valid email address.' }
   }
+
+  const rateLimit = await checkRateLimit('subscribe', 3)
+  if (!rateLimit.allowed) return { error: rateLimit.error }
 
   const supabase = await createClient()
 
