@@ -26,15 +26,16 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         </Link>
         
         <div className="blog-reader-card" style={{ 
-          padding: "4rem",
+          padding: "clamp(1.5rem, 5vw, 2.5rem)",
           background: blog.theme_color ? `${blog.theme_color}4d` : 'rgba(255,255,255,0.08)', 
-          border: `2px solid ${blog.theme_color || 'var(--accent-color)'}`,
-          boxShadow: `0 0 50px ${blog.theme_color}33`,
-          backdropFilter: "none" 
+          border: 'none',
+          boxShadow: 'none',
+          backdropFilter: "none",
+          borderRadius: "var(--radius-lg)"
         }}>
-          <header style={{ marginBottom: "var(--space-lg)" }}>
-            <h1 style={{ fontSize: "clamp(2.5rem, 5vw, 4.5rem)", marginBottom: "var(--space-sm)", color: "#fff", lineHeight: "1.1" }}>{blog.title}</h1>
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", color: "rgba(255,255,255,0.7)", flexWrap: "wrap", fontSize: "0.95rem" }}>
+          <header style={{ marginBottom: "var(--space-md)" }}>
+            <h1 style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)", marginBottom: "var(--space-xs)", color: "#fff", lineHeight: "1.2" }}>{blog.title}</h1>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", color: "rgba(255,255,255,0.7)", flexWrap: "wrap", fontSize: "0.85rem" }}>
               <span style={{ fontStyle: "italic", fontWeight: 500 }}>With love, by Shruthi</span>
               <span>•</span>
               <span>{format(new Date(blog.created_at), 'MMMM d, yyyy')}</span>
@@ -42,11 +43,11 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           </header>
 
           {blog.image_url && (
-            <div style={{ marginBottom: "var(--space-xl)", borderRadius: "var(--radius-lg)", overflow: "hidden", display: "flex", justifyContent: "center", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div style={{ marginBottom: "var(--space-lg)", borderRadius: "var(--radius-md)", overflow: "hidden", display: "flex", justifyContent: "center", border: "1px solid rgba(255,255,255,0.1)" }}>
               <img 
                 src={blog.image_url} 
                 alt={blog.title} 
-                style={{ width: "100%", maxHeight: "700px", objectFit: "contain" }} 
+                style={{ width: "100%", maxHeight: "500px", objectFit: "contain" }} 
               />
             </div>
           )}
@@ -54,7 +55,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           {/* Render the raw HTML from TipTap */}
           <div 
             className="blog-content"
-            style={{ fontSize: "1.2rem", color: "rgba(255,255,255,0.95)", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "var(--space-md)", wordWrap: "break-word" }}
+            style={{ fontSize: "1.05rem", color: "rgba(255,255,255,0.95)", lineHeight: "1.6", display: "flex", flexDirection: "column", gap: "var(--space-sm)", wordWrap: "break-word" }}
             dangerouslySetInnerHTML={{ __html: blog.content }} 
           />
 
