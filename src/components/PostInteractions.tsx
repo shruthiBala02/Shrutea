@@ -75,49 +75,49 @@ export function PostInteractions({
   return (
     <div className="interactions-container" style={{ borderTopColor: themeColor ? `${themeColor}44` : 'rgba(255,255,255,0.1)' }}>
       
-      {/* Identity Recognition */}
-      <div className="identifier-section">
-        <p className="input-label" style={{ marginBottom: "0.5rem" }}>
-          Tell us who you are (used for likes and comments)
-        </p>
-        
-        {errorStatus && (
-          <div style={{ padding: "0.8rem", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "var(--radius-sm)", color: "#f87171", fontSize: "0.9rem", marginBottom: "1rem" }}>
-            {errorStatus}
-          </div>
-        )}
-        
-        <input 
-          type="email" 
-          placeholder="yourname@gmail.com" 
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-          className="modern-input"
-        />
-      </div>
+      {/* Error Feedback */}
+      {errorStatus && (
+        <div style={{ padding: "0.8rem", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "var(--radius-sm)", color: "#f87171", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
+          {errorStatus}
+        </div>
+      )}
 
       {/* Main Interaction Bar */}
       <div className="interaction-bar">
-        <button 
-          onClick={handleLike}
-          disabled={!email || hasLiked}
-          className={`interaction-btn ${hasLiked ? 'active' : ''}`}
-          style={{ 
-            color: hasLiked ? (themeColor || "var(--accent-color)") : "#fff",
-            borderColor: hasLiked ? (themeColor ? `${themeColor}66` : "var(--accent-color)") : "rgba(255,255,255,0.1)"
-          }}
-        >
-          <Heart size={20} fill={hasLiked ? "currentColor" : "none"} /> 
-          <span>{likes} {likes === 1 ? 'Like' : 'Likes'}</span>
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+          <button 
+            onClick={handleLike}
+            disabled={hasLiked}
+            className={`interaction-btn ${hasLiked ? 'active' : ''}`}
+            style={{ 
+              color: hasLiked ? (themeColor || "var(--accent-color)") : "#fff",
+              borderColor: hasLiked ? (themeColor ? `${themeColor}66` : "var(--accent-color)") : "rgba(255,255,255,0.1)",
+              width: 'fit-content'
+            }}
+          >
+            <Heart size={20} fill={hasLiked ? "currentColor" : "none"} /> 
+            <span>{likes} {likes === 1 ? 'Like' : 'Likes'}</span>
+          </button>
+          
+          {!email && !hasLiked && (
+            <input 
+              type="email" 
+              placeholder="Email to like..." 
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="modern-input"
+              style={{ padding: '0.5rem 0.8rem', fontSize: '0.85rem', maxWidth: '240px' }}
+            />
+          )}
+        </div>
         
         <button 
           onClick={() => setShowComments(!showComments)}
           className={`interaction-btn ${showComments ? 'active' : ''}`}
+          style={{ height: 'fit-content' }}
         >
           <MessageCircle size={20} /> 
-          <span>{comments.length} Comments</span>
+          <span>{comments.length}</span>
         </button>
       </div>
 
@@ -130,6 +130,20 @@ export function PostInteractions({
           </h3>
           
           <form onSubmit={submitComment} className="comment-form">
+            {!email && (
+              <div style={{ marginBottom: '0.5rem' }}>
+                <p className="input-label" style={{ marginBottom: '0.5rem' }}>Email to comment:</p>
+                <input 
+                  type="email" 
+                  placeholder="yourname@gmail.com" 
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="modern-input"
+                  required
+                />
+              </div>
+            )}
+            
             <div className="textarea-wrapper">
               <textarea 
                 placeholder="Write a comment..." 
@@ -147,9 +161,10 @@ export function PostInteractions({
                 <Send size={18} />
               </button>
             </div>
+            
             {!email && (
-              <p style={{ fontSize: "0.75rem", color: "rgba(239, 68, 68, 0.7)", textAlign: "center" }}>
-                Enter your email above to enable commenting.
+              <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center", marginTop: '0.5rem' }}>
+                Please enter your email above to post.
               </p>
             )}
           </form>
