@@ -18,6 +18,9 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Shruti's Blog | Aesthetic Insights",
   description: "Personal essays, technical blogs, and insights by Shruti.",
+  icons: {
+    icon: '/favicon.png',
+  }
 };
 
 export default async function RootLayout({
@@ -33,7 +36,19 @@ export default async function RootLayout({
         <div className="layout-wrapper">
           <header className="main-header">
             <div className="container header-content">
-              <a href="/" className="logo gradient-text">Shrutea.</a>
+              <a href="/" className="logo-link">
+                <img
+                  src="/logo_nav.png"
+                  alt="Shrutea"
+                  style={{
+                    height: "45px",
+                    width: "auto",
+                    objectFit: "contain",
+                    display: "block",
+                    filter: "drop-shadow(0 0 10px rgba(255,255,255,0.1))"
+                  }}
+                />
+              </a>
               <nav className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                 <LeaveMessage />
                 <SubscribeNavbar />

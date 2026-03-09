@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
 import { isAuthenticated } from '@/app/login/actions/auth'
+import { sendNewPostEmail } from '@/lib/mail'
 
 export async function publishBlog(title: string, content: string, imageUrl: string | null, themeColor: string, profileUrl: string, existingId: string | null = null) {
   const supabase = await createClient()
@@ -42,6 +43,10 @@ export async function publishBlog(title: string, content: string, imageUrl: stri
       return { error: error.message }
     }
     resultId = data[0].id
+
+    // Trigger automated email alert for NEW posts
+    // We do this in the background, don't await it to keep the UI fast
+    sendNewPostEmail(title, resultId);
   }
 
   // Update site settings profile image

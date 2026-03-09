@@ -1,0 +1,51 @@
+'use server'
+
+import { Resend } from 'resend';
+import { createClient } from './supabase-server';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function sendNewPostEmail(title: string, slug: string) {
+    if (!process.env.RESEND_API_KEY) {
+        console.warn('RESEND_API_KEY not found. Skipping email notifications.');
+        return;
+    }
+
+    const supabase = await createClient();
+    const { data: subscribers } = await supabase
+        .from('subscribers')
+        .select('email');
+
+    if (!subscribers || subscribers.length === 0) return;
+
+    const blogUrl = `https://shrutea.com/blog/${slug}`; // Replace with your actual domain later
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'Shrutea <hello@shrutea.com>', // You might need to verify a domain on Resend for this
+            to: subscribers.map(s => s.email),
+            subject: `New Post: ${title} ✨`,
+            html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+          <h1 style="color: #061a30;">New Blog Post Alert! 🥂</h1>
+          <p>Hi there! I just published a new piece on <strong>Shrutea.</strong></p>
+          <h2 style="margin-top: 30px;">${title}</h2>
+          <p style="margin-bottom: 30px;">I'd love to hear your thoughts on this one.</p>
+          <a href="${blogUrl}" style="background-color: #061a30; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+            Read the full story
+          </a>
+          <hr style="margin-top: 40px; border: 0; border-top: 1px solid #eee;" />
+          <p style="font-size: 12px; color: #999; text-align: center;">You're receiving this because you subscribed to Shrutea's blog.</p>
+        </div>
+      `
+        });
+
+        if (error) {
+            console.error('Error sending email:', error);
+        } else {
+            console.log('Emails sent successfully:', data);
+        }
+    } catch (err) {
+        console.error('Email automation failed:', err);
+    }
+}
