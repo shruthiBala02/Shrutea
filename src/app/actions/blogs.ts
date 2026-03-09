@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 
 export async function getPublishedBlogs() {
   const supabase = await createClient()
-  
+
   const { data: blogs, error } = await supabase
     .from('blogs')
     .select('*')
@@ -21,10 +21,10 @@ export async function getPublishedBlogs() {
 
 export async function getAllBlogs() {
   const supabase = await createClient()
-  
+
   const { data: blogs, error } = await supabase
     .from('blogs')
-    .select('id, title, created_at')
+    .select('id, title, created_at, is_published, likes_count, views_count')
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -37,7 +37,7 @@ export async function getAllBlogs() {
 
 export async function getBlogBySlug(id: string) {
   const supabase = await createClient()
-  
+
   const { data: blog, error } = await supabase
     .from('blogs')
     .select('*')
@@ -54,7 +54,7 @@ export async function getBlogBySlug(id: string) {
 
 export async function getBlogComments(blogId: string) {
   const supabase = await createClient()
-  
+
   const { data: comments, error } = await supabase
     .from('comments')
     .select('*')
@@ -71,7 +71,7 @@ export async function getBlogComments(blogId: string) {
 
 export async function getSiteSettings() {
   const supabase = await createClient()
-  
+
   const { data, error } = await supabase
     .from('site_settings')
     .select('profile_image_url')
@@ -87,7 +87,7 @@ export async function getSiteSettings() {
 
 export async function getAdminStats() {
   const supabase = await createClient()
-  
+
   const { data: blogs } = await supabase.from('blogs').select('likes_count, views_count')
   const { count: subsCount } = await supabase.from('subscribers').select('*', { count: 'exact', head: true })
 

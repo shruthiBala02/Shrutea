@@ -15,52 +15,61 @@ import { createClient } from '@/lib/supabase';
 
 export default function AdminStudio() {
   const router = useRouter();
+  const [activeView, setActiveView] = useState<'overview' | 'content' | 'editor'>('overview');
+
+  // Post State
   const [title, setTitle] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [themeColor, setThemeColor] = useState('#061a30');
   const [profileUrl, setProfileUrl] = useState('');
   const [status, setStatus] = useState<'idle' | 'publishing' | 'success' | 'error' | 'uploading'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  
+
+  // Data State
   const [stats, setStats] = useState({ views: 0, likes: 0, subscribers: 0 });
   const [blogsList, setBlogsList] = useState<any[]>([]);
   const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
 
   useEffect(() => {
-    getAdminStats().then(setStats);
-    getAllBlogs().then(setBlogsList);
+    refreshData();
   }, []);
 
-  const loadBlog = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = e.target.value;
-    if (!id) {
-      // New post
-      setSelectedBlogId(null);
-      setTitle('');
-      editor?.commands.setContent('<p>Start writing your masterpiece...</p>');
-      setImageUrl('');
-      setThemeColor('rgba(6, 26, 48, 0.7)');
-      return;
+  const refreshData = async () => {
+    const [statsData, blogsData] = await Promise.all([getAdminStats(), getAllBlogs()]);
+    setStats(statsData);
+    setBlogsList(blogsData);
+  };
+
+  const handleCreateNew = () => {
+    setSelectedBlogId(null);
+    setTitle('');
+    editor?.commands.setContent('<p>Start writing your masterpiece...</p>');
+    setImageUrl('');
+    setThemeColor('#061a30');
+    setActiveView('editor');
+  };
+
+  const handleEditBlog = async (blog: any) => {
+    setSelectedBlogId(blog.id);
+    setTitle(blog.title);
+    setImageUrl(blog.image_url || '');
+    setThemeColor(blog.theme_color || '#061a30');
+
+    // Fetch full blog content
+    const fullBlog = await getBlogBySlug(blog.id);
+    if (fullBlog) {
+      editor?.commands.setContent(fullBlog.content);
     }
-    
-    setSelectedBlogId(id);
-    const blog = await getBlogBySlug(id);
-    if (blog) {
-      setTitle(blog.title);
-      editor?.commands.setContent(blog.content);
-      setImageUrl(blog.image_url || '');
-      setThemeColor(blog.theme_color || 'rgba(6, 26, 48, 0.7)');
-    }
+    setActiveView('editor');
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void) => {
     let file = e.target.files?.[0];
     if (!file) return;
-    
+
     setStatus('uploading');
     try {
-      // Convert HEIC to JPEG for browser support
       if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
         const heic2any = (await import('heic2any')).default;
         const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
@@ -72,15 +81,15 @@ export default function AdminStudio() {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const { error } = await supabase.storage.from('images').upload(fileName, file);
-      
+
       if (error) throw error;
-      
+
       const { data } = supabase.storage.from('images').getPublicUrl(fileName);
       setter(data.publicUrl);
       setStatus('idle');
     } catch (error: any) {
       console.error('Upload error:', error);
-      setErrorMessage('Failed to upload image. Ensure the storage bucket is created.');
+      setErrorMessage('Failed to upload image.');
       setStatus('error');
     }
   };
@@ -91,9 +100,7 @@ export default function AdminStudio() {
       Underline,
       TextStyle,
       Color,
-      Link.configure({
-        openOnClick: false,
-      }),
+      Link.configure({ openOnClick: false }),
     ],
     immediatelyRender: false,
     content: '<p>Start writing your masterpiece...</p>',
@@ -115,191 +122,222 @@ export default function AdminStudio() {
     const htmlContent = editor.getHTML();
 
     const res = await publishBlog(title, htmlContent, imageUrl || null, themeColor, profileUrl, selectedBlogId);
-    
+
     if (res.error) {
       setStatus('error');
       setErrorMessage(res.error);
     } else {
       setStatus('success');
-      router.push(`/blog/${res.blogId}`);
+      refreshData();
+      setActiveView('content');
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedBlogId) return;
-    if (!window.confirm("Are you sure you want to permanently delete this beautiful post?")) return;
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Delete this masterpiece? This cannot be undone.")) return;
 
-    setStatus('publishing'); // Reusing this status for the loading state
-    const res = await deleteBlog(selectedBlogId);
-    
+    const res = await deleteBlog(id);
     if (res.error) {
-      setStatus('error');
-      setErrorMessage(res.error);
+      alert(res.error);
     } else {
-      // Clear the form to start fresh
-      setSelectedBlogId(null);
-      setTitle('');
-      editor?.commands.setContent('<p>Start writing your masterpiece...</p>');
-      setImageUrl('');
-      setStatus('idle');
-      // Refresh the blog list
-      getAllBlogs().then(setBlogsList);
-      getAdminStats().then(setStats);
+      refreshData();
     }
   };
 
-  if (!editor) {
-    return null;
-  }
+  if (!editor) return null;
 
   return (
-    <div className="container" style={{ maxWidth: "900px" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-lg)" }}>
-        <h1>Studio Mode</h1>
-        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          {status === 'error' && <span style={{ color: 'var(--feedback-error)', fontSize: '0.85rem' }}>{errorMessage}</span>}
-          {status === 'uploading' && <span style={{ color: 'var(--accent-color)', fontSize: '0.85rem' }}>Uploading Image...</span>}
-          
-          <select onChange={loadBlog} value={selectedBlogId || ''} style={{ padding: "0.5rem", background: "var(--bg-color)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "var(--radius-sm)" }}>
-            <option value="">+ Create New Post</option>
-            {blogsList.map(b => <option key={b.id} value={b.id}>Edit: {b.title}</option>)}
-          </select>
-          
-          <button onClick={() => setIsPreview(!isPreview)} className="btn-secondary">
-            {isPreview ? 'Back to Edit' : 'Preview'}
-          </button>
-          
-          {selectedBlogId && (
-            <button onClick={handleDelete} disabled={status === 'publishing' || status === 'uploading'} style={{ background: "transparent", color: "var(--feedback-error)", border: "1px solid var(--feedback-error)", padding: "0.6rem 1.2rem", borderRadius: "var(--radius-sm)", cursor: "pointer", fontWeight: 500 }}>
-              Delete Post
-            </button>
-          )}
-
-          <button onClick={handlePublish} disabled={status === 'publishing' || status === 'uploading'} className="btn-primary">
-            {status === 'publishing' ? 'Processing...' : (selectedBlogId ? 'Update Post' : 'Publish Post')}
+    <div className="studio-container">
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-xl)" }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          SHRUTEA STUDIO
+        </h1>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button onClick={handleCreateNew} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Bold size={18} /> New Post
           </button>
         </div>
       </header>
-      
-      {/* Stats Summary Panel */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "var(--space-md)", marginBottom: "var(--space-xl)" }}>
-        <div className="card" style={{ padding: "var(--space-md)", textAlign: "center" }}>
-          <div style={{ fontSize: "2rem", fontWeight: "700", color: "var(--text-lighter)" }}>{stats.views}</div>
-          <div style={{ color: "var(--text-muted)", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "1px" }}>Total Views</div>
-        </div>
-        <div className="card" style={{ padding: "var(--space-md)", textAlign: "center" }}>
-          <div style={{ fontSize: "2rem", fontWeight: "700", color: "var(--accent-color)" }}>{stats.likes}</div>
-          <div style={{ color: "var(--text-muted)", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "1px" }}>Total Likes</div>
-        </div>
-        <div className="card" style={{ padding: "var(--space-md)", textAlign: "center" }}>
-          <div style={{ fontSize: "2rem", fontWeight: "700", color: "#10B981" }}>{stats.subscribers}</div>
-          <div style={{ color: "var(--text-muted)", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "1px" }}>Subscribers</div>
-        </div>
-      </div>
 
-      {/* Editor / Preview Section */}
-      <div className="card" style={{ padding: "0", overflow: "hidden" }}>
-        
-        {!isPreview && (
-          <>
-            {/* Editor Toolbar */}
-            <div style={{ padding: "var(--space-sm) var(--space-md)", borderBottom: "1px solid var(--border-color)", display: "flex", gap: "0.5rem", flexWrap: "wrap", background: "var(--bg-hover)" }}>
-              <button onClick={() => editor.chain().focus().toggleBold().run()} className="btn-secondary" style={{ padding: "0.5rem" }} title="Bold">
-                 <Bold size={16} />
+      <nav className="studio-nav">
+        <button
+          onClick={() => setActiveView('overview')}
+          className={`studio-nav-item ${activeView === 'overview' ? 'active' : ''}`}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveView('content')}
+          className={`studio-nav-item ${activeView === 'content' ? 'active' : ''}`}
+        >
+          Content
+        </button>
+        {activeView === 'editor' && (
+          <button className="studio-nav-item active">
+            Editor: {title || 'New Post'}
+          </button>
+        )}
+      </nav>
+
+      {activeView === 'overview' && (
+        <div className="fade-in">
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-icon" style={{ color: '#6366f1' }}><UnderlineIcon size={24} /></div>
+              <div>
+                <div className="stat-value">{stats.views}</div>
+                <div className="stat-label">Total Views</div>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ color: '#ec4899' }}><Bold size={24} /></div>
+              <div>
+                <div className="stat-value">{stats.likes}</div>
+                <div className="stat-label">Total Likes</div>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ color: '#10b981' }}><List size={24} /></div>
+              <div>
+                <div className="stat-value">{stats.subscribers}</div>
+                <div className="stat-label">Subscribers</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
+            <h2 style={{ marginBottom: '1rem' }}>Welcome back, Creator!</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Ready to share your next human, messy, and beautiful thought?</p>
+            <button onClick={handleCreateNew} className="btn-primary" style={{ padding: '0.8rem 2.5rem' }}>
+              Create New Masterpiece
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeView === 'content' && (
+        <div className="content-table-wrapper fade-in">
+          <table className="content-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Views</th>
+                <th>Likes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {blogsList.map(blog => (
+                <tr key={blog.id}>
+                  <td>
+                    <button onClick={() => handleEditBlog(blog)} className="studio-post-link">
+                      {blog.title}
+                    </button>
+                  </td>
+                  <td>
+                    <span className={`badge ${blog.is_published ? 'badge-published' : 'badge-draft'}`}>
+                      {blog.is_published ? 'Published' : 'Draft'}
+                    </span>
+                  </td>
+                  <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    {new Date(blog.created_at).toLocaleDateString()}
+                  </td>
+                  <td>{blog.views_count || 0}</td>
+                  <td>{blog.likes_count || 0}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={() => handleEditBlog(blog)} className="action-icon-btn" title="Edit Content & Analytics">
+                        <UnderlineIcon size={18} />
+                      </button>
+                      <button onClick={() => handleDelete(blog.id)} className="action-icon-btn delete" title="Delete Permanentely">
+                        <List size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeView === 'editor' && (
+        <div className="fade-in">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <button onClick={() => setActiveView('content')} className="action-icon-btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Bold size={18} /> Back to Content
+            </button>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button onClick={() => setIsPreview(!isPreview)} className="btn-secondary">
+                {isPreview ? 'Back to Edit' : 'Preview'}
               </button>
-              <button onClick={() => editor.chain().focus().toggleItalic().run()} className="btn-secondary" style={{ padding: "0.5rem" }} title="Italic">
-                 <Italic size={16} />
-              </button>
-              <button onClick={() => editor.chain().focus().toggleUnderline().run()} className="btn-secondary" style={{ padding: "0.5rem" }} title="Underline">
-                 <UnderlineIcon size={16} />
-              </button>
-              
-              <div style={{ width: "1px", background: "var(--border-color)", margin: "0 0.5rem" }}></div>
-              
-              <button onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className="btn-secondary" style={{ padding: "0.5rem", fontWeight: 700 }} title="Heading 1">
-                 H1
-              </button>
-              <button onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="btn-secondary" style={{ padding: "0.5rem", fontWeight: 600 }} title="Heading 2">
-                 H2
-              </button>
-              <button onClick={() => editor.chain().focus().toggleBulletList().run()} className="btn-secondary" style={{ padding: "0.5rem" }} title="Bullet List">
-                 <List size={16} />
-              </button>
-              
-              <div style={{ width: "1px", background: "var(--border-color)", margin: "0 0.5rem" }}></div>
-              
-              <button onClick={() => {
-                const url = window.prompt('URL');
-                if (url) editor.chain().focus().setLink({ href: url }).run();
-              }} className="btn-secondary" style={{ padding: "0.5rem" }} title="Add Link">
-                 <LinkIcon size={16} />
+              <button onClick={handlePublish} disabled={status === 'publishing' || status === 'uploading'} className="btn-primary">
+                {status === 'publishing' ? 'Saving...' : (selectedBlogId ? 'Update Post' : 'Publish Post')}
               </button>
             </div>
+          </div>
 
-            {/* Info Fields */}
-            <div style={{ padding: "var(--space-md)", borderBottom: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "1rem" }}>
-              
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1rem", paddingBottom: "1rem", borderBottom: "1px solid var(--border-color)" }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>Update Global Profile Picture</label>
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, setProfileUrl)}
-                    style={{ fontSize: "0.95rem", padding: "0.5rem" }} 
-                  />
-                  {profileUrl && <span style={{ fontSize: "0.8rem", color: "var(--accent-color)" }}>Uploaded!</span>}
-                </div>
-                <div style={{ flex: 1, minWidth: "200px" }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>Post Thumbnail Color</label>
-                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                    <input 
-                      type="color" 
+          {!isPreview ? (
+            <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+              {/* Toolbar */}
+              <div style={{ padding: "var(--space-sm) var(--space-md)", borderBottom: "1px solid var(--border-color)", display: "flex", gap: "0.5rem", flexWrap: "wrap", background: "var(--bg-hover)" }}>
+                <button onClick={() => editor.chain().focus().toggleBold().run()} className="action-icon-btn" title="Bold"><Bold size={18} /></button>
+                <button onClick={() => editor.chain().focus().toggleItalic().run()} className="action-icon-btn" title="Italic"><Italic size={18} /></button>
+                <button onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className="action-icon-btn" title="H1"><Heading1 size={18} /></button>
+                <button onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="action-icon-btn" title="H2"><Heading2 size={18} /></button>
+                <button onClick={() => editor.chain().focus().toggleBulletList().run()} className="action-icon-btn" title="List"><List size={18} /></button>
+                <button onClick={() => {
+                  const url = window.prompt('URL');
+                  if (url) editor.chain().focus().setLink({ href: url }).run();
+                }} className="action-icon-btn" title="Link"><LinkIcon size={18} /></button>
+              </div>
+
+              <div style={{ padding: "1.5rem" }}>
+                <input
+                  type="text"
+                  placeholder="Post Title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  style={{ fontSize: "2rem", fontWeight: 800, padding: 0, border: "none", background: "transparent", color: "var(--text-lighter)", width: '100%', marginBottom: '1.5rem' }}
+                />
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)' }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>Cover Image</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, setImageUrl)}
+                      style={{ fontSize: "0.85rem" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>Thumbnail Color</label>
+                    <input
+                      type="color"
                       value={themeColor}
                       onChange={(e) => setThemeColor(e.target.value)}
-                      style={{ width: "40px", height: "40px", padding: 0, border: "none", cursor: "pointer", background: "none" }} 
+                      style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                     />
-                    <span style={{ fontSize: "0.9rem", color: "var(--text-muted)", fontFamily: "monospace" }}>{themeColor}</span>
                   </div>
                 </div>
-              </div>
 
-              <input 
-                type="text" 
-                placeholder="Post Title" 
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                style={{ fontSize: "2rem", fontWeight: 700, padding: 0, border: "none", background: "transparent", color: "var(--text-lighter)" }} 
-              />
-              <div>
-                <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>Post Cover Image (Optional)</label>
-                <input 
-                  type="file" 
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e, setImageUrl)}
-                  style={{ fontSize: "0.95rem", padding: "0.5rem" }} 
-                />
-                {imageUrl && <span style={{ fontSize: "0.8rem", color: "var(--accent-color)" }}>Uploaded!</span>}
+                <div className="editor-content" style={{ cursor: 'text' }}>
+                  <EditorContent editor={editor} />
+                </div>
               </div>
             </div>
-            
-            <div style={{ padding: "var(--space-lg)", cursor: "text" }} onClick={() => editor.commands.focus()}>
-              <EditorContent editor={editor} />
+          ) : (
+            <div className="card" style={{ padding: "var(--space-2xl)", background: "var(--bg-color)" }}>
+              <h1 style={{ fontSize: "3rem", marginBottom: "1rem" }}>{title || 'Untitled Post'}</h1>
+              {imageUrl && <img src={imageUrl} alt="" style={{ width: "100%", borderRadius: "var(--radius-md)", marginBottom: "2rem" }} />}
+              <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: editor.getHTML() }} />
             </div>
-          </>
-        )}
-
-        {isPreview && (
-          <div style={{ padding: "var(--space-2xl)", background: "var(--bg-color)" }}>
-            <h1 style={{ fontSize: "3rem", marginBottom: "1rem", lineHeight: "1.2", letterSpacing: "-1px" }}>{title || 'Untitled Blog Post'}</h1>
-            {imageUrl && (
-               <img src={imageUrl} alt="" style={{ width: "100%", height: "auto", maxHeight: "400px", objectFit: "cover", borderRadius: "var(--radius-md)", marginBottom: "2rem" }} />
-            )}
-            <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: editor.getHTML() }} />
-          </div>
-        )}
-        
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
