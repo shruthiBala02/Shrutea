@@ -8,7 +8,7 @@ export async function subscribeToNewsletter(email: string) {
     return { error: 'Please enter a valid email address.' }
   }
 
-  const rateLimit = await checkRateLimit('subscribe', 3, 1440)
+  const rateLimit = await checkRateLimit('subscribe', 10, 1440)
   if (!rateLimit.allowed) return { error: rateLimit.error }
 
   const supabase = await createClient()
