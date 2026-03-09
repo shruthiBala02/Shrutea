@@ -600,7 +600,7 @@ select {
 }
 
 .content-table-wrapper {
-  background: var(--bg-hover);
+  background: #0a192f;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   overflow: hidden;

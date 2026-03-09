@@ -300,7 +300,17 @@ export default function AdminStudio() {
                   placeholder="Post Title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  style={{ fontSize: "2rem", fontWeight: 800, padding: 0, border: "none", background: "transparent", color: "var(--text-lighter)", width: '100%', marginBottom: '1.5rem' }}
+                  style={{
+                    fontSize: "2rem",
+                    fontWeight: 800,
+                    padding: "0.5rem 0",
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--text-lighter)",
+                    width: '100%',
+                    marginBottom: '1rem',
+                    outline: 'none'
+                  }}
                 />
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)' }}>
