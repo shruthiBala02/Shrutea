@@ -13,7 +13,7 @@ export function AboutMe({ settings }: AboutMeProps) {
   return (
     <section className="about-section-wrapper">
       {/* Mobile Toggle Button */}
-      <button 
+      <button
         className="mobile-about-toggle"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -24,9 +24,9 @@ export function AboutMe({ settings }: AboutMeProps) {
       <div className={`about-section-content ${isOpen ? "is-open" : ""}`}>
         <div className="about-card-refined">
           {settings?.profile_image_url && (
-            <img 
-              src={settings.profile_image_url} 
-              alt="Shruthi B" 
+            <img
+              src={settings.profile_image_url}
+              alt="Shruthi B"
               className="about-profile-img"
             />
           )}
@@ -36,7 +36,7 @@ export function AboutMe({ settings }: AboutMeProps) {
             <p className="about-intro-refined">
               I’m Shruthi B, a Chennai girl currently pursuing my Masters.
             </p>
-            
+
             <p>This little corner of the internet is where I write about life as it happens.</p>
 
             <p>
@@ -73,11 +73,14 @@ export function AboutMe({ settings }: AboutMeProps) {
           <div className="about-connect-refined">
             <h3 className="gradient-text connect-title-refined">Do you want to connect?</h3>
             <div className="connect-links-refined">
+              <a href="https://linkedin.com/in/shruthibalasubramanian" target="_blank" rel="noopener noreferrer" className="btn-secondary connect-link-refined">
+                LinkedIn
+              </a>
               <a href="https://instagram.com/10shruthi" target="_blank" rel="noopener noreferrer" className="btn-secondary connect-link-refined">
-                <Instagram size={18} /> Instagram
+                Instagram
               </a>
               <a href="mailto:shruanalytics@gmail.com" className="btn-secondary connect-link-refined">
-                <Mail size={18} /> Email
+                <Mail size={18} /> Email Me
               </a>
             </div>
           </div>

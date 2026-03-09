@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import { isAuthenticated } from '@/app/login/actions/auth';
 import { SubscribeNavbar } from '@/components/SubscribeNavbar';
+import { LeaveMessage } from '@/components/LeaveMessage';
 import "./globals.css";
 
 const inter = Inter({
@@ -33,7 +34,8 @@ export default async function RootLayout({
           <header className="main-header">
             <div className="container header-content">
               <a href="/" className="logo gradient-text">Shrutea.</a>
-              <nav className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+              <nav className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                <LeaveMessage />
                 <SubscribeNavbar />
                 <a href="/">Home</a>
                 {isAuth && (
@@ -42,16 +44,17 @@ export default async function RootLayout({
               </nav>
             </div>
           </header>
-          
+
           <main className="main-content">
             {children}
           </main>
-          
+
           <footer className="main-footer">
             <div className="container">
               <div className="footer-content">
                 <p>&copy; {new Date().getFullYear()} Shrutea. All rights reserved.</p>
                 <div className="social-links">
+                  <a href="https://linkedin.com/in/shruthibalasubramanian" target="_blank" rel="noopener noreferrer" style={{ transition: 'opacity 0.2s' }}>LinkedIn</a>
                   <a href="https://instagram.com/10shruthi" target="_blank" rel="noopener noreferrer" style={{ transition: 'opacity 0.2s' }}>Instagram</a>
                   <a href="mailto:shruanalytics@gmail.com" style={{ transition: 'opacity 0.2s' }}>Email</a>
                 </div>

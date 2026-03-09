@@ -12,10 +12,12 @@ import { Bold, Italic, Underline as UnderlineIcon, Link as LinkIcon, Heading1, H
 import { publishBlog } from './actions/publish';
 import { getAdminStats, getAllBlogs, getBlogBySlug, deleteBlog } from '../actions/blogs';
 import { createClient } from '@/lib/supabase';
+import { getMessages, deleteMessage } from '../actions/messages';
+import { Mail, Trash2 } from 'lucide-react';
 
 export default function AdminStudio() {
   const router = useRouter();
-  const [activeView, setActiveView] = useState<'overview' | 'content' | 'editor'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'content' | 'editor' | 'messages'>('overview');
 
   // Post State
   const [title, setTitle] = useState('');
@@ -28,6 +30,7 @@ export default function AdminStudio() {
   // Data State
   const [stats, setStats] = useState({ views: 0, likes: 0, subscribers: 0 });
   const [blogsList, setBlogsList] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
 
@@ -36,9 +39,10 @@ export default function AdminStudio() {
   }, []);
 
   const refreshData = async () => {
-    const [statsData, blogsData] = await Promise.all([getAdminStats(), getAllBlogs()]);
+    const [statsData, blogsData, messagesData] = await Promise.all([getAdminStats(), getAllBlogs(), getMessages()]);
     setStats(statsData);
     setBlogsList(blogsData);
+    setMessages(messagesData);
   };
 
   const handleCreateNew = () => {
@@ -144,6 +148,13 @@ export default function AdminStudio() {
     }
   };
 
+  const handleDeleteMessage = async (id: string) => {
+    if (!window.confirm("Delete this message?")) return;
+    const res = await deleteMessage(id);
+    if (res.error) alert(res.error);
+    else refreshData();
+  };
+
   if (!editor) return null;
 
   return (
@@ -171,6 +182,12 @@ export default function AdminStudio() {
           className={`studio-nav-item ${activeView === 'content' ? 'active' : ''}`}
         >
           Content
+        </button>
+        <button
+          onClick={() => setActiveView('messages')}
+          className={`studio-nav-item ${activeView === 'messages' ? 'active' : ''}`}
+        >
+          Messages ({messages.length})
         </button>
         {activeView === 'editor' && (
           <button className="studio-nav-item active">
@@ -346,6 +363,46 @@ export default function AdminStudio() {
               <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: editor.getHTML() }} />
             </div>
           )}
+        </div>
+      )}
+      {activeView === 'messages' && (
+        <div className="fade-in">
+          <div className="content-table-wrapper">
+            <table className="content-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '200px' }}>Date</th>
+                  <th>Message</th>
+                  <th style={{ width: '80px' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {messages.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                      No messages yet.
+                    </td>
+                  </tr>
+                ) : (
+                  messages.map((msg) => (
+                    <tr key={msg.id}>
+                      <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        {new Date(msg.created_at).toLocaleString()}
+                      </td>
+                      <td style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                        {msg.content}
+                      </td>
+                      <td>
+                        <button onClick={() => handleDeleteMessage(msg.id)} className="action-icon-btn delete">
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
