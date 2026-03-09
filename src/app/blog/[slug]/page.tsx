@@ -16,8 +16,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!blog) return {};
 
+  const BASE_URL = 'https://www.shrutea.in';
+  const ogImage = blog.image_url || `${BASE_URL}/logo_nav.png`;
   const title = blog.title;
-  const description = "A blog by Shruthi";
+  const description = blog.content.replace(/<[^>]*>?/gm, '').substring(0, 150).trim() + '…';
 
   return {
     title,
@@ -25,7 +27,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title,
       description,
-      images: ['/logo_nav.png'],
+      url: `${BASE_URL}/blog/${slug}`,
+      siteName: 'Shrutea',
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
       type: 'article',
       publishedTime: blog.created_at,
       authors: ['Shruthi B'],
@@ -34,8 +45,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       card: 'summary_large_image',
       title,
       description,
-      images: ['/logo_nav.png'],
-    }
+      images: [ogImage],
+    },
   };
 }
 

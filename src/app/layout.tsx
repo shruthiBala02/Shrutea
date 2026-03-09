@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     siteName: "Shrutea",
     images: [
       {
-        url: "/logo_nav.png",
+        url: "https://www.shrutea.in/logo_nav.png",
         width: 1200,
         height: 630,
         alt: "Shrutea Logo",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Shrutea",
     description: "A blog by Shruthi",
-    images: ["/logo_nav.png"],
+    images: ["https://www.shrutea.in/logo_nav.png"],
   },
   icons: {
     icon: '/favicon.ico',

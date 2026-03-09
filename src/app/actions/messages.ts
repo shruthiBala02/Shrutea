@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase-server'
-import { checkRateLimit, getFingerprint } from '@/lib/rate-limit'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { revalidatePath } from 'next/cache'
 import { isAuthenticated } from '@/app/login/actions/auth'
 
@@ -14,15 +14,15 @@ export async function leaveMessage(content: string) {
         return { error: 'Message is too long (max 500 characters).' }
     }
 
-    const fingerprint = await getFingerprint()
 
     // Rate limit: 1 message per 24 hours (1440 minutes)
-    const isRateLimited = await checkRateLimit(fingerprint, 1, 1440)
-    if (isRateLimited) {
+    const rateLimit = await checkRateLimit('message', 1, 1440)
+    if (!rateLimit.allowed) {
         return { error: 'Only one message per day! Your thoughts are valued, see you tomorrow!' }
     }
 
     const supabase = await createClient()
+    const fingerprint = rateLimit.fingerprint
     const { error } = await supabase
         .from('guest_messages')
         .insert({ fingerprint, content: content.trim() })

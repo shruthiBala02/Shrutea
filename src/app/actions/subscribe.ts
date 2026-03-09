@@ -8,8 +8,9 @@ export async function subscribeToNewsletter(email: string) {
     return { error: 'Please enter a valid email address.' }
   }
 
-  const rateLimit = await checkRateLimit('subscribe', 10, 1440)
-  if (!rateLimit.allowed) return { error: rateLimit.error }
+  // 3 subscribe attempts per IP per hour — prevents Resend API abuse
+  const rateLimit = await checkRateLimit('subscribe', 3, 60)
+  if (!rateLimit.allowed) return { error: 'Too many attempts. Please try again later.' }
 
   const supabase = await createClient()
 
@@ -24,10 +25,11 @@ export async function subscribeToNewsletter(email: string) {
     return { error: 'Something went wrong. Please try again.' }
   }
 
-  // Send the welcome email in the background
+  // Send the welcome email in the background (fire-and-forget)
   import('@/lib/mail').then(({ sendWelcomeEmail }) => {
     sendWelcomeEmail(email).catch(console.error);
   });
 
   return { success: true }
 }
+
