@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!blog) return {};
 
-  const title = `${blog.title} | Shrutea.`;
-  const description = blog.content.replace(/<[^>]*>?/gm, '').substring(0, 160);
+  const title = blog.title;
+  const description = "A blog by Shruthi";
 
   return {
     title,
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title,
       description,
-      images: [blog.image_url || '/logo_nav.png'],
+      images: ['/logo_nav.png'],
       type: 'article',
       publishedTime: blog.created_at,
       authors: ['Shruthi B'],
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       card: 'summary_large_image',
       title,
       description,
-      images: [blog.image_url || '/logo_nav.png'],
+      images: ['/logo_nav.png'],
     }
   };
 }

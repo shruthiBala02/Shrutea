@@ -15,10 +15,32 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Shruti's Blog | Aesthetic Insights",
-  description: "Personal essays, technical blogs, and insights by Shruti.",
+  title: "Shrutea",
+  description: "A blog by Shruthi",
+  openGraph: {
+    title: "Shrutea",
+    description: "A blog by Shruthi",
+    url: "https://www.shrutea.in",
+    siteName: "Shrutea",
+    images: [
+      {
+        url: "/logo_nav.png",
+        width: 1200,
+        height: 630,
+        alt: "Shrutea Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shrutea",
+    description: "A blog by Shruthi",
+    images: ["/logo_nav.png"],
+  },
   icons: {
-    icon: '/favicon.png',
+    icon: '/favicon.ico',
   }
 };
 
