@@ -13,7 +13,7 @@ import { publishBlog } from './actions/publish';
 import { getAdminStats, getAllBlogs, getBlogBySlug, deleteBlog } from '../actions/blogs';
 import { createClient } from '@/lib/supabase';
 import { getMessages, deleteMessage } from '../actions/messages';
-import { Mail, Trash2, Plus } from 'lucide-react';
+import { Mail, Trash2, Plus, Pen } from 'lucide-react';
 import { isAuthenticated } from '../login/actions/auth';
 
 export default function AdminStudio() {
@@ -289,10 +289,10 @@ export default function AdminStudio() {
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button onClick={() => handleEditBlog(blog)} className="action-icon-btn" title="Edit Content & Analytics">
-                        <UnderlineIcon size={18} />
+                        <Pen size={18} />
                       </button>
                       <button onClick={() => handleDelete(blog.id)} className="action-icon-btn delete" title="Delete Permanentely">
-                        <List size={18} />
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </td>
