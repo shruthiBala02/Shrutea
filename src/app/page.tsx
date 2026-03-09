@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { getPublishedBlogs, getSiteSettings } from "./actions/blogs";
 import { format } from "date-fns";
-import { Heart, MessageCircle, Share2, Eye } from "lucide-react";
+import { Heart, MessageCircle, Share2, Eye, Clock } from "lucide-react";
 import { AboutMe } from "@/components/AboutMe";
+import { calculateReadTime } from "@/lib/utils";
 
 export const dynamic = 'force-dynamic'; // Force dynamic rendering to ensure live views/likes stats
 
@@ -16,7 +17,7 @@ export default async function Home() {
         {/* Blog Feed Section (Priority on Mobile) */}
         <section className="feed-section">
           <h2 className="section-title" style={{ marginBottom: "var(--space-xl)", fontSize: "2rem" }}>Latest Posts</h2>
-          
+
           <div className="blog-feed">
             {blogs.length === 0 ? (
               <div className="card" style={{ padding: "var(--space-2xl)", textAlign: "center", color: "var(--text-muted)" }}>
@@ -24,10 +25,10 @@ export default async function Home() {
               </div>
             ) : (
               blogs.map((blog: any) => (
-                <div 
-                  key={blog.id} 
+                <div
+                  key={blog.id}
                   className="card blog-card-row"
-                  style={{ 
+                  style={{
                     background: blog.theme_color ? `${blog.theme_color}26` : 'var(--bg-card)',
                     borderColor: blog.theme_color ? `${blog.theme_color}80` : 'var(--border-color)',
                     boxShadow: blog.theme_color ? `0 0 30px ${blog.theme_color}1a` : 'none'
@@ -47,10 +48,13 @@ export default async function Home() {
                         {blog.content.replace(/<[^>]+>/g, '')}...
                       </p>
                     </Link>
-                    
+
                     {/* Action Bar */}
                     <div className="blog-card-actions">
                       <span className="blog-card-date">{format(new Date(blog.created_at), 'MMM d, yyyy')}</span>
+                      <span className="stats-btn" style={{ cursor: 'default' }}>
+                        <Clock size={12} /> <span style={{ fontSize: '0.75rem' }}>{calculateReadTime(blog.content)}</span>
+                      </span>
                       <div className="blog-card-stats">
                         <button className="stats-btn" title="Like">
                           <Heart size={14} /> <span>{blog.likes_count || 0}</span>
