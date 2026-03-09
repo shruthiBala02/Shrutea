@@ -6,6 +6,9 @@ import { PostInteractions } from "@/components/PostInteractions";
 import { ViewCounter } from "@/components/ViewCounter";
 import { calculateReadTime } from "@/lib/utils";
 import type { Metadata } from "next";
+import { ReadingProgress } from "@/components/ReadingProgress";
+import { HighlightToShare } from "@/components/HighlightToShare";
+import { ImageLightbox } from "@/components/ImageLightbox";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -69,6 +72,11 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
+      <ReadingProgress />
+      <HighlightToShare />
+      <ImageLightbox />
+
       <div className="container">
         <ViewCounter blogId={blog.id} />
         <Link href="/" style={{ color: "var(--accent-color)", fontWeight: 500, fontSize: "0.9rem", display: "inline-block", marginBottom: "var(--space-md)" }}>
