@@ -24,5 +24,10 @@ export async function subscribeToNewsletter(email: string) {
     return { error: 'Something went wrong. Please try again.' }
   }
 
+  // Send the welcome email in the background
+  import('@/lib/mail').then(({ sendWelcomeEmail }) => {
+    sendWelcomeEmail(email).catch(console.error);
+  });
+
   return { success: true }
 }

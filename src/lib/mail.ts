@@ -50,3 +50,32 @@ export async function sendNewPostEmail(title: string, slug: string) {
         console.error('Email automation failed:', err);
     }
 }
+
+export async function sendWelcomeEmail(email: string) {
+    if (!process.env.RESEND_API_KEY) return;
+
+    try {
+        await resend.emails.send({
+            from: 'Shrutea. <hello@shrutea.in>',
+            to: email,
+            replyTo: 'shruanalytics@gmail.com',
+            subject: 'Welcome to Shrutea! ✨',
+            html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+          <h1 style="color: #061a30;">Welcome aboard! ☕️</h1>
+          <p>Hi there,</p>
+          <p>Thank you so much for subscribing to <strong>Shrutea</strong>. I'm thrilled to have you here.</p>
+          <p>You'll now be the very first to know whenever I publish a new essay, insight, or story.</p>
+          <p>If you ever want to chat or share your thoughts, just reply directly to this email!</p>
+          <br/>
+          <p>With love,</p>
+          <p><strong>Shruthi</strong></p>
+          <hr style="margin-top: 40px; border: 0; border-top: 1px solid #eee;" />
+          <p style="font-size: 12px; color: #999; text-align: center;">You're receiving this because you subscribed to Shrutea.in</p>
+        </div>
+      `
+        });
+    } catch (err) {
+        console.error('Welcome email failed:', err);
+    }
+}
