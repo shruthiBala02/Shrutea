@@ -13,7 +13,8 @@ import { publishBlog } from './actions/publish';
 import { getAdminStats, getAllBlogs, getBlogBySlug, deleteBlog } from '../actions/blogs';
 import { createClient } from '@/lib/supabase';
 import { getMessages, deleteMessage } from '../actions/messages';
-import { Mail, Trash2 } from 'lucide-react';
+import { Mail, Trash2, Plus } from 'lucide-react';
+import { isAuthenticated } from '../login/actions/auth';
 
 export default function AdminStudio() {
   const router = useRouter();
@@ -33,16 +34,30 @@ export default function AdminStudio() {
   const [messages, setMessages] = useState<any[]>([]);
   const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    refreshData();
+    const checkAuth = async () => {
+      const isAuth = await isAuthenticated();
+      if (!isAuth) {
+        router.push('/login');
+      } else {
+        setLoading(false);
+        refreshData();
+      }
+    };
+    checkAuth();
   }, []);
 
   const refreshData = async () => {
-    const [statsData, blogsData, messagesData] = await Promise.all([getAdminStats(), getAllBlogs(), getMessages()]);
-    setStats(statsData);
-    setBlogsList(blogsData);
-    setMessages(messagesData);
+    try {
+      const [statsData, blogsData, messagesData] = await Promise.all([getAdminStats(), getAllBlogs(), getMessages()]);
+      setStats(statsData);
+      setBlogsList(blogsData);
+      setMessages(messagesData);
+    } catch (err) {
+      console.error("Failed to fetch studio data:", err);
+    }
   };
 
   const handleCreateNew = () => {
@@ -155,17 +170,25 @@ export default function AdminStudio() {
     else refreshData();
   };
 
-  if (!editor) return null;
+  if (loading || !editor) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050505', color: '#fff' }}>
+        <p style={{ letterSpacing: '2px', opacity: 0.8 }}>PREPARING STUDIO...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="studio-container">
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-xl)" }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          SHRUTEA STUDIO
-        </h1>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-2xl)" }}>
+        <img
+          src="/logo_nav.png"
+          alt="Shrutea"
+          style={{ height: "40px", width: "auto", objectFit: "contain", opacity: 0.8 }}
+        />
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={handleCreateNew} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Bold size={18} /> New Post
+          <button onClick={handleCreateNew} className="btn-primary" style={{ fontSize: '0.85rem' }}>
+            <Plus size={16} style={{ marginRight: '0.5rem' }} /> New Post
           </button>
         </div>
       </header>
@@ -225,7 +248,7 @@ export default function AdminStudio() {
           <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
             <h2 style={{ marginBottom: '1rem' }}>Welcome back, Creator!</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Ready to share your next human, messy, and beautiful thought?</p>
-            <button onClick={handleCreateNew} className="btn-primary" style={{ padding: '0.8rem 2.5rem' }}>
+            <button onClick={handleCreateNew} className="btn-primary" style={{ padding: '0.8rem 2.5rem', fontSize: '1rem' }}>
               Create New Masterpiece
             </button>
           </div>

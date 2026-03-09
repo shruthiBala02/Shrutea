@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import { isAuthenticated } from '@/app/login/actions/auth';
 import { SubscribeNavbar } from '@/components/SubscribeNavbar';
-import { LeaveMessage } from '@/components/LeaveMessage';
 import "./globals.css";
 
 const inter = Inter({
@@ -50,12 +49,8 @@ export default async function RootLayout({
                 />
               </a>
               <nav className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                <LeaveMessage />
                 <SubscribeNavbar />
                 <a href="/">Home</a>
-                {isAuth && (
-                  <a href="/studio" className="btn-secondary" style={{ padding: "0.25rem 0.75rem", fontSize: "0.875rem" }}>Studio</a>
-                )}
               </nav>
             </div>
           </header>
