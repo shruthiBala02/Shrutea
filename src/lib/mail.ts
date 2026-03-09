@@ -22,8 +22,9 @@ export async function sendNewPostEmail(title: string, slug: string) {
 
     try {
         const { data, error } = await resend.emails.send({
-            from: 'Shrutea <hello@shrutea.in>',
+            from: 'Shrutea. <hello@shrutea.in>',
             to: subscribers.map(s => s.email),
+            replyTo: 'shruanalytics@gmail.com',
             subject: `New Post: ${title} ✨`,
             html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
