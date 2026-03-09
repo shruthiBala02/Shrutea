@@ -5,17 +5,42 @@ import { revalidatePath } from 'next/cache'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function likePost(blogId: string) {
-  const rateLimit = await checkRateLimit('like', 100)
+  // 1. Anti-abuse burst limit: 10 likes per minute per fingerprint
+  const rateLimit = await checkRateLimit('like_attempt', 10, 1)
   if (!rateLimit.allowed) return { error: rateLimit.error }
 
   const supabase = await createClient()
-  
+  const fingerprint = rateLimit.fingerprint
+
+  // 2. Business logic: 1 like per post per fingerprint
+  const { data: existingLike } = await supabase
+    .from('post_likes')
+    .select('id')
+    .eq('blog_id', blogId)
+    .eq('fingerprint', fingerprint)
+    .single()
+
+  if (existingLike) {
+    return { error: 'You have already liked this post!' }
+  }
+
+  // 3. Record the like
+  const { error: likeError } = await supabase
+    .from('post_likes')
+    .insert([{ blog_id: blogId, fingerprint }])
+
+  if (likeError) {
+    console.error('Error recording like:', likeError.message)
+    return { error: 'Failed to record like.' }
+  }
+
+  // 4. Increment count on blog
   const { data: currentBlog } = await supabase
     .from('blogs')
     .select('likes_count')
     .eq('id', blogId)
     .single()
-    
+
   if (currentBlog) {
     await supabase
       .from('blogs')
@@ -31,7 +56,7 @@ export async function addComment(blogId: string, email: string, content: string)
   if (!email || !email.includes('@')) {
     return { error: 'A valid email address is required to comment.' }
   }
-  
+
   const rateLimit = await checkRateLimit('comment', 10)
   if (!rateLimit.allowed) return { error: rateLimit.error }
 
@@ -76,13 +101,13 @@ export async function incrementView(blogId: string) {
   if (!rateLimit.allowed) return
 
   const supabase = await createClient()
-  
+
   const { data: currentBlog } = await supabase
     .from('blogs')
     .select('views_count')
     .eq('id', blogId)
     .single()
-    
+
   if (currentBlog) {
     await supabase
       .from('blogs')
