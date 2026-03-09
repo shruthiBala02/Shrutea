@@ -57,7 +57,7 @@ export async function addComment(blogId: string, email: string, content: string)
     return { error: 'A valid email address is required to comment.' }
   }
 
-  const rateLimit = await checkRateLimit('comment', 10)
+  const rateLimit = await checkRateLimit('comment', 5, 60)
   if (!rateLimit.allowed) return { error: rateLimit.error }
 
   const supabase = await createClient()
