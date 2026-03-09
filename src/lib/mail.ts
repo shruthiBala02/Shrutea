@@ -18,11 +18,11 @@ export async function sendNewPostEmail(title: string, slug: string) {
 
     if (!subscribers || subscribers.length === 0) return;
 
-    const blogUrl = `https://shrutea.com/blog/${slug}`; // Replace with your actual domain later
+    const blogUrl = `https://shrutea.in/blog/${slug}`;
 
     try {
         const { data, error } = await resend.emails.send({
-            from: 'Shrutea <hello@shrutea.com>', // You might need to verify a domain on Resend for this
+            from: 'Shrutea <hello@shrutea.in>',
             to: subscribers.map(s => s.email),
             subject: `New Post: ${title} ✨`,
             html: `
